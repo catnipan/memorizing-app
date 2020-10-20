@@ -82,9 +82,15 @@ function Memo({ title, memoId, content, stage, createdAt, schedule }) {
         <Typography variant="h5" component="h2">
           {title}
         </Typography>
-        <Typography variant="body2" component="p">
-          {content}
-        </Typography>
+        {content.split('\n').map((item, i) => (
+          <Typography
+            key={`${memoId}-${i}`}
+            variant="body2"
+            component="p"
+          >
+            {item}
+          </Typography>
+        ))}
       </CardContent>
       <CardActions>
         <Box className={classes.date}>
