@@ -2,96 +2,59 @@ import React from 'react';
 import { Paper } from '../ui';
 import { Chart, LineAdvance } from 'bizcharts';
 import { parseUTC } from '../../clock';
+import { useQuery } from '@apollo/client';
+import { ClientTimeQuery } from '../query';
 
-const data = [
-	{
-		month: "Jan",
-		city: "Tokyo",
-		temperature: 7
-	},
-	{
-		month: "Feb",
-		city: "Tokyo",
-		temperature: 13
-	},
-	{
-		month: "Mar",
-		city: "Tokyo",
-		temperature: 16.5
-	},
-	{
-		month: "Apr",
-		city: "Tokyo",
-		temperature: 14.5
-	},
-	{
-		month: "May",
-		city: "Tokyo",
-		temperature: 10
-	},
-	{
-		month: "Jun",
-		city: "Tokyo",
-		temperature: 7.5
-	},
-	{
-		month: "Jul",
-		city: "Tokyo",
-		temperature: 9.2
-	},
-	{
-		month: "Aug",
-		city: "Tokyo",
-		temperature: 14.5
-	},
-	{
-		month: "Sep",
-		city: "Tokyo",
-		temperature: 9.3
-	},
-	{
-		month: "Oct",
-		city: "Tokyo",
-		temperature: 8.3
-	},
-	{
-		month: "Nov",
-		city: "Tokyo",
-		temperature: 8.9
-	},
-	{
-		month: "Dec",
-		city: "Tokyo",
-		temperature: 5.6
-	},
-];
+
+let lastToday;
+let lastMemos;
+let ans;
+
+function calculateData(clientNow, memos) {
+  let today = clientNow.format("MM-DD")
+  if (today !== lastToday || memos !== lastMemos) {
+    console.log('recalculate!');
+    const dateCount = {};
+    
+    for (let i = 0; i <= 15; ++i) {
+      dateCount[clientNow.add(i, 'day').format("MM-DD")] = 0;
+    }
+
+    memos.forEach(({ Stage, Schedule }) => {
+      const day = parseUTC(Schedule);
+      for (let i = 0; i < s.length; ++i) {
+        const date = day.add(s[i] - s[Stage], 'day').format("MM-DD");
+        if (dateCount[date] != undefined) {
+          dateCount[date]++;
+        }
+      }
+    });
+    ans = [];
+    for (const [date, review] of Object.entries(dateCount)) {
+      ans.push({
+        date,
+        review,
+        city: 'review work load schedule'
+      })
+    }
+    lastToday = today;
+    lastMemos = memos;
+  }
+  return ans;
+}
 
 const s = [0,1,2,4,7,15]
 export default function Statistics({ memos }) {
-  const dateCount = {};
-  memos.forEach(({ Stage, Schedule }) => {
-    const day = parseUTC(Schedule);
-    for (let i = Stage; i < s.length; ++i) {
-      const date = day.add(i == Stage ? 0 : s[i] - s[i - 1], 'day').format("YYYY-MM-DD");
-      dateCount[date] = (dateCount[date] || 0) + 1;
-    }
-  });
-  const data = [];
-  for (const [date, count] of Object.entries(dateCount)) {
-    data.push({
-      date,
-      count,
-      city: 'review work load schedule'
-    })
-  }
+  const { data: { clientNow } } = useQuery(ClientTimeQuery);
+  
   return (
     <Paper>
-      <Chart padding={[10, 20, 50, 40]} autoFit height={200} data={data} >
+      <Chart padding={[10, 20, 50, 40]} autoFit height={200} data={calculateData(clientNow, memos)} >
         <LineAdvance
           shape="smooth"
           point
           area
-          position="date*count"
+          position="date*review"
           color="city"
         />
       </Chart>
