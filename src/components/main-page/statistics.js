@@ -1,10 +1,10 @@
-import React from 'react';
-import { Paper } from '../ui';
-import { Chart, LineAdvance } from 'bizcharts';
+import React, { useState } from 'react';
+import { useQuery } from "@apollo/client";
+import { ResponsiveBar } from '@nivo/bar'
+import { Box, styles } from '../ui';
+import { ClientTimeQuery } from '../query'
 import { parseUTC } from '../../clock';
-import { useQuery } from '@apollo/client';
-import { ClientTimeQuery } from '../query';
-
+import { Typography } from '@material-ui/core';
 
 let lastToday;
 let lastMemos;
@@ -16,7 +16,8 @@ function calculateData(clientNow, memos) {
     console.log('recalculate!');
     const dateCount = {};
     
-    for (let i = 0; i <= 15; ++i) {
+    const today = clientNow.format('MM-DD');
+    for (let i = -15; i <= 15; ++i) {
       dateCount[clientNow.add(i, 'day').format("MM-DD")] = 0;
     }
 
@@ -30,11 +31,15 @@ function calculateData(clientNow, memos) {
       }
     });
     ans = [];
-    for (const [date, review] of Object.entries(dateCount)) {
+    for (const [date, count] of Object.entries(dateCount)) {
+      const isToday = date === today;
       ans.push({
         date,
-        review,
-        city: 'review work load schedule'
+        todayCount: isToday ? count : 0,
+        todayCountColor: `hsl(65, 70%, 50%)`,
+        otherdayCount: isToday ? 0 : count,
+        otherdayCountColor: `hsl(8, 70%, 50%)`,
+        isToday,
       })
     }
     lastToday = today;
@@ -43,21 +48,43 @@ function calculateData(clientNow, memos) {
   return ans;
 }
 
+const useStyle = styles.makeStyles(theme => ({
+  box: {
+    minHeight: '100vh',
+    width: '100%',
+    height: '100vh',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: -100,
+  },
+}));
+
 const s = [0,1,2,4,7,15]
 export default function Statistics({ memos }) {
   const { data: { clientNow } } = useQuery(ClientTimeQuery);
-  
-  return (
-    <Paper>
-      <Chart padding={[10, 20, 50, 40]} autoFit height={200} data={calculateData(clientNow, memos)} >
-        <LineAdvance
-          shape="smooth"
-          point
-          area
-          position="date*review"
-          color="city"
-        />
-      </Chart>
-    </Paper>
-  );
+  const data = calculateData(clientNow, memos);
+  const classes = useStyle();
+  return <Box className={classes.box}>
+      <ResponsiveBar
+        data={data}
+        keys={['otherdayCount', 'todayCount']}
+        indexBy="date"
+        margin={{ top: 60, right: 0, bottom: 0, left: 0 }}
+        padding={0}
+        colors={{ scheme: 'nivo' }}
+        axisTop={null}
+        axisRight={null}
+        axisLeft={null}
+        axisBottom={null}
+        enableGridY={false}
+        animate={true}
+        motionStiffness={90}
+        motionDamping={15}
+        maxValue={40}
+        enableLabel={true}
+        labelTextColor="#FDF2D4"
+        isInteractive={false}
+      />
+    </Box>
 }

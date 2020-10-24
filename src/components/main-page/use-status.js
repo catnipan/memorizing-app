@@ -25,12 +25,12 @@ export default function useStatus(scheduleStr) {
     if (diff < 0) {
       return {
         type: Status.Expired,
-        comment: `Expired at ${formatLocal(deadline)}`
+        comment: `This Memo card expired ${humanizeDuration(diff)} ago.`
       }
     } else {
       return {
         type: Status.JustNow,
-        comment: `Review in ${humanizeDuration(diff)}`,
+        comment: `Time left to review: ${humanizeDuration(diff)}`,
       }
     }
   }

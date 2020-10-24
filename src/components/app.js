@@ -11,6 +11,7 @@ import timezone from 'dayjs/plugin/timezone';
 import { ExitToAppIcon } from './icon';
 import { GetUserInfoQuery, LogOutMutation, ClientTimeQuery, ServerTimeQuery } from './query';
 import { formatLocal, syncClientTime } from '../clock';
+import Guard, { mustLogout, mustLogin } from './guard';
 
 function UserInfo({ display }) {
   const userInfoRes = useQuery(GetUserInfoQuery, {
@@ -34,6 +35,9 @@ function UserInfo({ display }) {
 }
 
 const useStyles = styles.makeStyles((theme) => ({
+  wrapper: {
+    minHeight: '100vh',
+  },
   title: {
     flexGrow: 1,
   },
@@ -48,8 +52,8 @@ export default function App() {
   });
   const classes = useStyles();
   return (
-    <Box>
-      <AppBar position="static">
+    <Box className={classes.wrapper}>
+      <AppBar color="transparent" position="fixed" elevation={0}>
         <Toolbar>
           <Typography variant="h6" className={classes.title}>
             Memorizing
@@ -64,10 +68,14 @@ export default function App() {
           <Redirect to="/main" />
         </Route>
         <Route path="/login">
-          <LogInPage />
+          <Guard type={mustLogout}>
+            <LogInPage />
+          </Guard>
         </Route>
         <Route path="/main">
-          <MainPage />
+          <Guard type={mustLogin}>
+            <MainPage />
+          </Guard>
         </Route>
       </Switch>
     </Box>

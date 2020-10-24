@@ -7,15 +7,19 @@ import './style.css';
 import client from './graphql-client';
 import { initClientTime } from './clock';
 import { SnackbarProvider } from 'notistack';
+import { ThemeProvider } from '@material-ui/core/styles';
+import theme from './theme';
 
 initClientTime();
 
 ReactDOM.render(
   <ApolloProvider client={client}>
     <Router>
-      <SnackbarProvider maxSnack={3}>
-        <App />
-      </SnackbarProvider>
+      <ThemeProvider theme={theme}>
+        <SnackbarProvider maxSnack={3}>
+          <App />
+        </SnackbarProvider>
+      </ThemeProvider>
     </Router>
   </ApolloProvider>,
 document.getElementById('app'));

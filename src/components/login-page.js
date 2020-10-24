@@ -4,8 +4,7 @@ import { useMutation } from "@apollo/client";
 import { Redirect } from 'react-router-dom';
 import { GetUserInfoQuery, LoginUserMutation, SignUpAndLogInMutation } from './query';
 import { TextField, Button, Paper, Box, Typography, LinearProgress, styles } from './ui'
-import { MustLogout } from './auth-hoc';
-
+import bg from '../image/bg.png';
 
 const Mode = {
   Login: Symbol(),
@@ -14,10 +13,17 @@ const Mode = {
 
 const useStyle = styles.makeStyles(theme => ({
   box: {
-    minHeight: '80vh',
+    backgroundImage: `url(${bg})`,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
+    minHeight: '100vh',
     display: 'flex',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
+  },
+  wrapper: {
+    width: 400,
+    marginRight: '10vw',
   },
   container: {
     padding: '2em',
@@ -56,10 +62,13 @@ function LogInPage() {
     }
   };
 
+  if (res.data && res.data.LoginUser) {
+    return <Redirect to="/" />;
+  }
+
   return (
     <Box className={classes.box}>
-      {res.data && res.data.LoginUser && <Redirect to="/" />}
-      <Box width={400}>
+      <Box className={classes.wrapper}>
         <Paper elevation={2}>
           {res.loading && <LinearProgress />}
           <Box className={classes.container}>
@@ -120,4 +129,4 @@ function LogInPage() {
   )
 }
 
-export default MustLogout(LogInPage);
+export default LogInPage;
